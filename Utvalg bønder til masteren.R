@@ -4,6 +4,7 @@
 utvalg2018<-read.csv("2018.csv", sep = ";")
 install.packages("tidyverse")
 library(tidyverse)
+
 set.seed(42) #Starter fra samme sted når den finner randomme.
 
 utvalg2018$kommunenr <- as.factor(utvalg2018$kommunenr) #Gjør kommunenr kategoriske.

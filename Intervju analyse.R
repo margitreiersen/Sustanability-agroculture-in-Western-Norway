@@ -3,8 +3,10 @@ library(tidyverse)
 
 #UTVALG OG INTERVJUOBJEKT (TILSVARER KOMMUNEDATA)####
 #skal se på tall for alle 60 utvalgte
-utvalg.60 <- read.csv("intervjuobjekt.csv", sep = ";")
-colSums(utvalg.60 > 0, na.rm = TRUE)
+utvalg.60 <- read.csv("intervjuobjekt.csv", sep = ",")
+utvalg.60<- as_tibble(utvalg.60)
+utvalg.60
+colSums(utvalg.60 > 0, na.rm = TRUE) #HER ER DET ET ELLER ANNET. ER KOLLONENE DEFINERT RETT? FAKTOR OL.?
 mean(utvalg.60$fulldyrket, na.rm = TRUE) #55,78
 median(utvalg.60$fulldyrket, na.rm = TRUE) #34
 mean(utvalg.60$totalareal) #142,81
@@ -18,17 +20,19 @@ prod.intervju <-
   read.csv("intervjuobjekt 29 prod.info.csv",
            sep = ";",
            dec = ",")
+prod.intervju<- as_tibble(prod.intervju)
+prod.intervju
+
 colSums(prod.intervju > 0, na.rm = TRUE)#Finner antall i de ulike driftsformene.
-#Gjennomsnittet av dyr i de ulike kategoriene er regnet ut i excel
+#Gjennomsnittet av dyr i de ulike kategoriene er regnet ut i excel ->DETTE MÅ KANSKJE STÅ I R ?
 median(prod.intervju$fulldyrket, na.rm = TRUE)#50
 
 #INTERVJU-SVAR Ordinasjon ####
 #Laster inn alle svarene på intervjuene
 library(readxl)
 resultat.intervju <- read_excel("Svar på intervju.xlsx")
-#resultat.intervju<- read.csv2("Svar på intervju 1.csv", sep = ";",na.strings = c("NA","Na","na"), dec = ",")
 
-#Plukker ut de kolonene som skal være med i clusteranalyse.
+#Plukker ut de kolonene som skal være med i ordinasjon og clusteranalyse. ####
 Intervju.60.prod <-
   read.csv("intervjuobjekt 60 prod med navn.csv", sep = ";") #Produksjonsdata
 names(resultat.intervju)
@@ -70,7 +74,7 @@ resultat.uttrekk <-
                   by = "Intervjuobjekt") #Velger ut de kollonene som ikke skal være med (alt som ikke er nummer eller binære data) + legger til fulldyrka, overflatedyrke, innmarksbeite til dataene.
 
 
-#dele i prediktor og respons
+#dele i prediktor og respons####
 names(resultat.uttrekk)
 respons.interessant <- resultat.uttrekk %>%
   select (
@@ -99,7 +103,7 @@ class(d)
 
 HCcomplit <- hclust(d, method = "ward.D", members = NULL)
 plot(HCcomplit)
-cutree(HCcomplit, k = 3)
+cutree(HCcomplit, k = 3) #velger 3 cluster
 cutree(HCcomplit, k = 4)
 cutree(HCcomplit, k = 5)
 
@@ -110,7 +114,7 @@ PCoA1 #Denne viser variasjon som er forklart med de ulike aksene.
 plot(PCoA1)
 screeplot(PCoA1, bstick = FALSE) #velger å bruke de to første. Ikke en klar brudd mellom støy og klar variasjon
 
-#Sett inn cluster
+#Sett inn cluster TO DO
 #chull -> linje rundt. 
 
 #Prediktor
