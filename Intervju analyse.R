@@ -103,19 +103,26 @@ class(d)
 
 HCcomplit <- hclust(d, method = "ward.D", members = NULL)
 plot(HCcomplit)
-cutree(HCcomplit, k = 3) #velger 3 cluster
-cutree(HCcomplit, k = 4)
-cutree(HCcomplit, k = 5)
+rect.hclust(HCcomplit, k = 3)
+cluster.3 <-cutree(HCcomplit, k = 3) #velger 3 cluster
+#cutree(HCcomplit, k = 4)
+#cutree(HCcomplit, k = 5)
 
 install.packages("vegan")
 library(vegan)
 PCoA1 <- capscale(d ~ 1)
 PCoA1 #Denne viser variasjon som er forklart med de ulike aksene.
-plot(PCoA1)
 screeplot(PCoA1, bstick = FALSE) #velger å bruke de to første. Ikke en klar brudd mellom støy og klar variasjon
+plot(PCoA1)
+
+col <- c("red2", "green4", "mediumblue")
+col[cluster.3]
+#https://stackoverflow.com/questions/12436902/overlaying-clustering-results-on-an-ordination
 
 #Sett inn cluster TO DO
 #chull -> linje rundt. 
+
+
 
 #Prediktor
 Prediktor.interesant<-select(resultat.uttrekk,Alder,Kommunenr,Kjønn,Pros..Jobb, Bonde,fulldyrket,overflatedyrket,innmarksbeite)%>%mutate(Kommunenr=factor(Kommunenr))
@@ -125,7 +132,21 @@ efit <- envfit(PCoA1, Prediktor.interesant, permutations = 999)
 efit
 plot(PCoA1)#baseplot
 plot(efit)#everything
-plot(efit, p.max = .05, col = "green")#just significant ones
+plot(efit, p.max = .05, col = "green") #just significant ones
+install.packages("ggvegan") #ikke tilgjengelig... 
+ 
+#Til spiderweb diagram ####
+library(tidyverse)
+spider.df<- select(resultat.uttrekk, Drive.med.matproduksjon:lokal.matproduksjon.Vestlandet,B.viktighet) #6 kolonner.
+#Stolt.bonde og Respekt.som.bonde er binære kategoriske. gjøre de om til nei=0 og ja=1
+spider.df<-as_tibble(spider.df)
+spider.df
+
+spider.mean.df<- spider.df %>% 
+  rownames_to_column() %>%  
+  gather(key = variable, value = measurment,-rowname) %>% 
+  group_by(variable) %>% 
+  summarise(mean = mean(measurment))
 
 #VENNDIAGRAM AV UTDANNING ####
 #Nytt forsøk
