@@ -142,11 +142,41 @@ spider.df<- select(resultat.uttrekk, Drive.med.matproduksjon:lokal.matproduksjon
 spider.df<-as_tibble(spider.df)
 spider.df
 
-spider.mean.df<- spider.df %>% 
+
+spider.df <-
+  spider.df %>% mutate(
+    Stolt.bonde = recode(Stolt.bonde, "ja" = 6, "nei" = 0),
+    Respekt.som.bonde = recode(Respekt.som.bonde, "ja" = 6, "nei" = 0)) %>% 
+  rename(
+    `Stolt som bonde` = Stolt.bonde,
+    `Drive med matproduksjon` = Drive.med.matproduksjon,
+    `Viktigheten av bærekraft` = B.viktighet,
+    `Lokal matproduksjon på Vestlandet` = lokal.matproduksjon.Vestlandet,
+    `Følt respekt som bonde` = Respekt.som.bonde
+  )
+spider.df
+
+spider.mean.df <- spider.df %>% 
   rownames_to_column() %>%  
   gather(key = variable, value = measurment,-rowname) %>% 
   group_by(variable) %>% 
   summarise(mean = mean(measurment))
+spider.mean.df
+
+spid <-
+  ggplot(spider.mean.df, aes(x = variable, y = mean, group = 1)) + 
+  geom_point(size=2) + 
+  geom_line(colour= "green1") + 
+  coord_polar(start = pi) + 
+  annotate("text", x= rep(0.5,3), y= c(2,4,6), label = c("2", "4","6" ))+
+  ylim(0,6) + 
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title = element_blank())
+spid
+
+library(grid)
+gt <- ggplot_gtable(ggplot_build(spid))
+gt$layout$clip[gt$layout$name == "panel"] <- "off"
+grid.draw(gt)
 
 #VENNDIAGRAM AV UTDANNING ####
 #Nytt forsøk
