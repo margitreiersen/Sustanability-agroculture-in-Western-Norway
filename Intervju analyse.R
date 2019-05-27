@@ -162,6 +162,9 @@ spider.mean.df <- spider.df %>%
   group_by(variable) %>% 
   summarise(mean = mean(measurment))
 spider.mean.df
+#inn her ska eg vist prøve ggradar. for at det skal se penere ut
+#installed.packages("ggradar")
+#library(ggradar)
 
 spid <-
   ggplot(spider.mean.df, aes(x = variable, y = mean, group = 1)) + 
