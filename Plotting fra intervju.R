@@ -15,14 +15,28 @@ bakgrunn<- bakgrunn + geom_point()+ coord_equal()
 bakgrunn <- bakgrunn + stat_smooth(method="lm", formula=y~x, se=F, mapping = aes(group=1),show.legend = FALSE, color="black")
 bakgrunn <- bakgrunn + labs(y="Alder på bonden", x="Bonde i antall år")
 bakgrunn
+
 #Reggresjon av linjen
 bakgrunn.lm<-lm(Alder~Bonde, data=resultat.intervju)
 anova(bakgrunn.lm)
 summary(bakgrunn.lm) #y=0.73x+37.17 , p-verdi 2,58e-07
 
-# bakgrunn.glm<-glm(Alder~Bonde, data=resultat.intervju)
-# anova(bakgrunn.glm)
-# summary(bakgrunn.glm)
+#test av GLM
+bakgrunn.glm<-glm(Alder~Bonde, data=resultat.intervju, family = poisson())
+anova(bakgrunn.glm)
+summary(bakgrunn.glm)
+pred <- predict(bakgrunn.glm, newdata = data.frame(Bonde=1:50), se.fit = TRUE)
+exp(pred$fit)
+fit.reg <- tibble(mean=exp(pred$fit),Bonde= 1:50, up=exp(pred$fit + 1.96 * pred$se.fit),down=exp(pred$fit - 1.96 * pred$se.fit))
+
+bakgrunn<- ggplot(data=select(resultat.intervju,Kjønn, Alder, Bonde), aes(Bonde, Alder, colour=Kjønn))+
+  geom_point()+ coord_equal()+ 
+  #stat_smooth(method="lm", formula=y~x, se=F, mapping = aes(group=1),show.legend = FALSE, color="black")+
+  labs(y="Alder på bonden", x="Bonde i antall år") +
+  geom_line(aes(Bonde, y = mean), data  = fit.reg, inherit.aes = FALSE) + 
+  geom_ribbon(data = fit.reg, aes(Bonde, ymax = up, ymin = down), inherit.aes = FALSE, alpha= 0.3)
+
+
 
 #Plotte Belastning på helse, yrke bonde og kjønn ####
 Belastning<- ggplot(data=select(resultat.intervju,Kjønn, Bonde, Belastning.helse), aes(Bonde, Belastning.helse,colour=Kjønn) )
