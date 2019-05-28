@@ -1,9 +1,8 @@
 library(readxl)
+library(nlme)
 Driftsformer.df <- read_excel("Driftsformer.xlsx")
 library(tidyverse)
 Driftsformer.df<-Driftsformer.df %>% arrange(Kategori,desc(Antall)) %>% mutate(n=1:n()) %>% mutate(Driftsform=reorder(Driftsform,n))
-
-library(ggplot2)
 p1 <- ggplot(Driftsformer.df, aes(Driftsform,fill=Kategori, y=Antall) )
 p1 <- p1+  geom_col() + coord_flip()
 p1<- p1 + theme(axis.title = element_blank())
@@ -20,6 +19,10 @@ bakgrunn
 bakgrunn.lm<-lm(Alder~Bonde, data=resultat.intervju)
 anova(bakgrunn.lm)
 summary(bakgrunn.lm) #y=0.73x+37.17 , p-verdi 2,58e-07
+
+# bakgrunn.glm<-glm(Alder~Bonde, data=resultat.intervju)
+# anova(bakgrunn.glm)
+# summary(bakgrunn.glm)
 
 #Plotte Belastning på helse, yrke bonde og kjønn ####
 Belastning<- ggplot(data=select(resultat.intervju,Kjønn, Bonde, Belastning.helse), aes(Bonde, Belastning.helse,colour=Kjønn) )
