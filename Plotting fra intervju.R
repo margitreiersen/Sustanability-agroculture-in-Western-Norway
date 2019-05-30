@@ -20,6 +20,8 @@ bakgrunn
 bakgrunn.lm<-lm(Alder~Bonde, data=resultat.intervju)
 anova(bakgrunn.lm)
 summary(bakgrunn.lm) #y=0.73x+37.17 , p-verdi 2,58e-07
+par(mfrow=c(2,2))
+plot(bakgrunn.lm)
 
 #test av GLM
 bakgrunn.glm<-glm(Alder~Bonde, data=resultat.intervju, family = poisson())
@@ -66,3 +68,29 @@ Drift<- ggplot(data=select(resultat.intervju,Lenge.gården.i.drift), aes(Lenge.g
 Drift<- Drift + geom_histogram(binwidth = 10) #BLIR DENNE RETT Å BRUKE? ELLER ER GEOM-BAR BEDRE?
 Drift<- Drift + labs(x= "Antatt drift framover (år)", y= "Antall") 
 Drift
+
+#Jordbruksbedrifter og jordbrukseiendom ####
+library(readxl)
+j.areal<- read_excel("jordbruksareal_ tot.xlsx")
+j.areal %>% 
+  gather(key = Kommune, value = Jordbruksareal, -År) %>% 
+  ggplot(aes(x=År, y= Jordbruksareal, colour=Kommune)) + geom_point()
+
+jordbruksareal.sto<- j.areal %>% 
+  gather(key = Kommune, value = Jordbruksareal, -År) %>% 
+  mutate(År = as.numeric(År))
+
+
+j.bedrift <- read_excel("jordbruksbedrifter_tot.xlsx")
+j.bedrift %>% 
+  gather(key = Kommune, value = Jordbruksbedrifter, -år) %>% 
+  mutate(år = as.numeric(år)) %>% 
+  group_by(år, Kommune) %>% 
+  ggplot(aes(x=år, y= Jordbruksbedrifter)) + geom_point()
+
+jordbruksbedrifter.sto<- j.bedrift %>% 
+  gather(key = Kommune, value = Jordbruksbedrifter, -år) %>% 
+  mutate(år = as.numeric(år))
+
+areal.bedrift.sto<- jordbruksbedrifter.sto %>% full_join(jordbruksareal.sto, by = c("år"="År", "Kommune"= "Kommune")) 
+
