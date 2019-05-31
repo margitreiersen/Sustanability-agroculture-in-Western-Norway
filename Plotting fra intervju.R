@@ -75,16 +75,17 @@ j.areal<- read_excel("jordbruksareal_ tot.xlsx")
 jordbruksareal.sto<- j.areal %>% 
   gather(key = Kommune, value = Jordbruksareal, -År) %>% 
   mutate(År = as.numeric(År))
+j.areal %>% mutate(År = as.numeric(År)) %>% 
+  gather(key = Kommune, value = Jordbruksareal, -År) %>% 
+  ggplot(aes(x=År, y= Jordbruksareal, colour=Kommune)) + geom_point() + geom_line()
 
 j.bedrift <- read_excel("jordbruksbedrifter_tot.xlsx")
-j.bedrift %>% 
-  gather(key = Kommune, value = Jordbruksbedrifter, -år) %>% 
-  mutate(år = as.numeric(år)) %>% 
-  group_by(år, Kommune) %>% 
-  ggplot(aes(x=år, y= Jordbruksbedrifter)) + geom_point()
 jordbruksbedrifter.sto<- j.bedrift %>% 
   gather(key = Kommune, value = Jordbruksbedrifter, -år) %>% 
-  mutate(år = as.numeric(år))
+  mutate(år = as.numeric(år))  
+jordbruksbedrifter.sto %>% 
+  ggplot(aes(x=år, y= Jordbruksbedrifter, colour=Kommune)) + geom_point() +geom_line()
+
 
 areal.bedrift.sto<- jordbruksbedrifter.sto %>% 
   full_join(jordbruksareal.sto, by = c("år"="År", "Kommune"= "Kommune")) %>% 
@@ -93,21 +94,19 @@ areal.bedrift.sto<- jordbruksbedrifter.sto %>%
 areal.bedrift.sto %>% 
   ggplot(aes(x=år, y= areal.per.bedrift, colour= Kommune)) + 
   geom_point() + 
-  geom_smooth(method="lm", formula=y~poly(x,2), mapping = aes(group=1),show.legend = FALSE, color="black")+
+  geom_smooth(method="lm", formula=y~poly(x,2), se = F, mapping = aes(group=1), show.legend = FALSE, color="black")+
   labs(y="Gjennomsnitt Areal/bonde (dkk)", x="År")
-#her har jeg brukt en andregradslikning. Husk å brgrunn og sjekk ut hvordan dette kan testes for om det er det som er riktig.
-
-areal.lm <- lm(areal.per.bedrift~år, data = areal.bedrift.sto) 
-areal2.lm <- lm(areal.per.bedrift~poly(år,2), data = areal.bedrift.sto) # + I(år^2) ? Tester dette for andregrads - regresjon?
-anova(areal.lm, areal2.lm, test= "F")
-#Bør det brukes andre modeller?
-# Bør denne vektlegges ? 
-
-#Bør også lage en graf på endringen av jordbruksareal over tid. Her er det mest interessant å se på utviklingen i de ulike kommune opp mot hverandre.
-j.areal %>% 
-  gather(key = Kommune, value = Jordbruksareal, -År) %>% 
-  ggplot(aes(x=År, y= Jordbruksareal, colour=Kommune)) + geom_point()
 
 
-par(mfrow(2,2))
-plot(areal.lm)
+library(nlme)
+areal.lme <- lme(areal.per.bedrift~år, data = areal.bedrift.sto, random = ~1|Kommune, na.action = na.omit, method = "ML") 
+areal2.lme <- lme(areal.per.bedrift~poly(år,2, raw= TRUE), data = areal.bedrift.sto, random = ~1|Kommune, na.action = na.omit, method = "ML") 
+areal3.lme <- lme(areal.per.bedrift~poly(år,2, raw= TRUE), data = areal.bedrift.sto, random = ~1|Kommune, na.action = na.omit, method = "ML", correlation = corAR1())
+
+anova(areal.lme, areal2.lme, areal3.lme)
+anova(areal3.lme)
+summary(areal3.lme) #masse advarsler
+
+
+
+
